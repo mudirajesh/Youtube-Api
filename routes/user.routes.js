@@ -1,7 +1,8 @@
 import express from "express"
-import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import mongoose from "mongoose"
+import jwt from "jsonwebtoken"
+
 import User from "../models/user.model.js"
 import cloudinary from "../config/cloudinary.js"
 

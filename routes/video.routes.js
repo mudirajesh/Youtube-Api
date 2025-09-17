@@ -176,4 +176,23 @@ router.get("/all", async (req, res) => {
   }
 })
 
+// 👉 My videos
+router.get("/my-videos", async (req, res) => {
+  try {
+    const videos = await Video.find({
+      user_id: req.user_id,
+    }).sort({
+      createdAt: -1,
+    })
+
+    res.status(200).json({ videos })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      error: "Something went wrong",
+      message: error.message,
+    })
+  }
+})
+
 export default router

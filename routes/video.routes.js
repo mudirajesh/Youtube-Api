@@ -240,7 +240,7 @@ router.get("/category/:category", async (req, res) => {
   }
 })
 
-// Get video by tag
+// 👉 Get video by tag
 router.get("/tags/:tag", async (req, res) => {
   try {
     const tag = req.params.tag
@@ -255,6 +255,26 @@ router.get("/tags/:tag", async (req, res) => {
     res.status(500).json({
       message: "Something went wrong",
     })
+  }
+})
+
+// 👉 Video Like
+router.post("/like", checkAuth, async (req, res) => {
+  try {
+    const { videoId } = req.body
+
+    const video = await Video.findByIdAndUpdate(videoId, {
+      $addToSet: { likedBy: req.user_id },
+      $pull: { disLikedBy: req.user_id },
+    })
+
+    res.status(200).json({
+      message: "Liked the video",
+      video,
+    })
+  } catch (error) {
+    console.error("Fetch Error:", error)
+    res.status(500).json({ message: "Something went wrong" })
   }
 })
 

@@ -177,7 +177,7 @@ router.get("/all", async (req, res) => {
 })
 
 // 👉 My videos
-router.get("/my-videos", async (req, res) => {
+router.get("/my-videos", checkAuth, async (req, res) => {
   try {
     const videos = await Video.find({
       user_id: req.user_id,
@@ -194,5 +194,7 @@ router.get("/my-videos", async (req, res) => {
     })
   }
 })
+
+// 👉 Get Video by id
 
 export default router

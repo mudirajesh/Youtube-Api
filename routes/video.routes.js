@@ -228,4 +228,22 @@ router.get("/:id", checkAuth, async (req, res) => {
   }
 })
 
+// 👉 Get video by category
+router.get("/category/:category", async (req, res) => {
+  try {
+    const videos = await Video.find({
+      category: req.params.category,
+    }).sort({ createdAt: -1 })
+
+    res.status(200).json({
+      videos,
+    })
+  } catch (error) {
+    console.error("Fetch Error:", error)
+    res.status(500).json({
+      message: "Something went wrong",
+    })
+  }
+})
+
 export default router

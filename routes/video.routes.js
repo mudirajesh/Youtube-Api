@@ -164,9 +164,7 @@ router.get("/all", async (req, res) => {
   try {
     const videos = await Video.findById().sort({ createdAt: -1 })
 
-    res.status(200).json({
-      videos,
-    })
+    res.status(200).json(videos)
   } catch (error) {
     console.log(error)
     res.status(500).json({
@@ -185,7 +183,7 @@ router.get("/my-videos", checkAuth, async (req, res) => {
       createdAt: -1,
     })
 
-    res.status(200).json({ videos })
+    res.status(200).json(videos)
   } catch (error) {
     console.log(error)
     res.status(500).json({
@@ -216,9 +214,7 @@ router.get("/:id", checkAuth, async (req, res) => {
       })
     }
 
-    res.status(200).json({
-      video,
-    })
+    res.status(200).json(video)
   } catch (error) {
     console.log("Fetch Error: ", error)
     res.status(500).json({
@@ -235,9 +231,25 @@ router.get("/category/:category", async (req, res) => {
       category: req.params.category,
     }).sort({ createdAt: -1 })
 
-    res.status(200).json({
-      videos,
+    res.status(200).json(videos)
+  } catch (error) {
+    console.error("Fetch Error:", error)
+    res.status(500).json({
+      message: "Something went wrong",
     })
+  }
+})
+
+// Get video by tag
+router.get("/tags/:tag", async (req, res) => {
+  try {
+    const tag = req.params.tag
+
+    const videos = await Video.find({
+      tags: tag,
+    }).sort({ createdAt: -1 })
+
+    res.status(200).json(videos)
   } catch (error) {
     console.error("Fetch Error:", error)
     res.status(500).json({

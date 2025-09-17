@@ -159,4 +159,21 @@ router.delete("/delete/:id", checkAuth, async (req, res) => {
   }
 })
 
+// 👉 Get all videos
+router.get("/all", async (req, res) => {
+  try {
+    const videos = await Video.findById().sort({ createdAt: -1 })
+
+    res.status(200).json({
+      videos,
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      error: "Something went wrong ",
+      message: error.message,
+    })
+  }
+})
+
 export default router

@@ -73,22 +73,22 @@ router.put("/update/:id", checkAuth, async (req, res, next) => {
 
     let video = await Video.findById(videoId)
     if (!video) {
-      return res.status(500).json({
+      return res.status(404).json({
         error: "Video not found",
       })
     }
 
-    if (video.user_id.toString() !== req.user._id) {
+    if (video.user_id.toString() !== req.user._id.toString()) {
       return res.status(401).json({
         error: "Unauthorized access",
       })
     }
 
     if (req.files && req.files.thumbnail) {
-      await cloudinary.cloudinary_js_config.destroy(video.thumbnailId)
+      await cloudinary.uploader.destroy(video.thumbnailId)
 
       const thumbnailUpload = await cloudinary.uploader.upload(
-        req.files.thumbail.tempFilePath,
+        req.files.thumbnail.tempFilePath,
         {
           folder: "thumbnail",
         }
@@ -125,22 +125,22 @@ router.delete("/delete/:id", checkAuth, async (req, res) => {
 
     let video = await Video.findById(videoId)
 
-    if (!videoId) {
-      return res.status(400).json({
+    if (!video) {
+      return res.status(404).json({
         error: "Video not found",
       })
     }
 
     // ussi user ka hi video hai ki nhi
-    if (video.user_id.toString() !== req.user_id.toString()) {
+    if (video.user_id.toString() !== req.user._id.toString()) {
       return res.status(403).json({
-        error: "Unauthorization",
+        error: "Unauthorized",
       })
     }
 
     // Delete from cloudinary
     await cloudinary.uploader.destroy(video.videoId, {
-      resource: "video",
+      resource_type: "video",
     })
 
     await cloudinary.uploader.destroy(video.thumbnailId)
@@ -162,7 +162,7 @@ router.delete("/delete/:id", checkAuth, async (req, res) => {
 // 👉 Get all videos
 router.get("/all", async (req, res) => {
   try {
-    const videos = await Video.findById().sort({ createdAt: -1 })
+    const videos = await Video.find().sort({ createdAt: -1 })
 
     res.status(200).json(videos)
   } catch (error) {
@@ -178,7 +178,7 @@ router.get("/all", async (req, res) => {
 router.get("/my-videos", checkAuth, async (req, res) => {
   try {
     const videos = await Video.find({
-      user_id: req.user_id,
+      user_id: req.user._id,
     }).sort({
       createdAt: -1,
     })
@@ -196,8 +196,8 @@ router.get("/my-videos", checkAuth, async (req, res) => {
 // 👉 Get Video user view by id
 router.get("/:id", checkAuth, async (req, res) => {
   try {
-    const videoId = req.params._id
-    const userId = req.user_id
+    const videoId = req.params.id
+    const userId = req.user._id
 
     // Use findByIdAndUpdate to add the user ID to the viewedBy array if not already present
     const video = await Video.findByIdAndUpdate(
@@ -264,8 +264,8 @@ router.post("/like", checkAuth, async (req, res) => {
     const { videoId } = req.body
 
     const video = await Video.findByIdAndUpdate(videoId, {
-      $addToSet: { likedBy: req.user_id },
-      $pull: { disLikedBy: req.user_id },
+      $addToSet: { likedBy: req.user._id },
+      $pull: { disLikedBy: req.user._id },
     })
 
     res.status(200).json({
@@ -275,6 +275,25 @@ router.post("/like", checkAuth, async (req, res) => {
   } catch (error) {
     console.error("Fetch Error:", error)
     res.status(500).json({ message: "Something went wrong" })
+  }
+})
+
+// 👉 Video dislike
+router.post("/dislike", checkAuth, async (req, res) => {
+  try {
+    const { videoId } = req.body
+
+    await Video.findByIdAndUpdate(videoId, {
+      $addToSet: { disLikedBy: req.user._id },
+      $pull: { likedBy: req.user._id }, // Remove from likes if previously liked
+    })
+
+    res.status(200).json({
+      message: "Disliked the video",
+    })
+  } catch (error) {
+    console.error("Dislike Error:", error)
+    res.status(500).json({ error: "Something went wrong" })
   }
 })
 

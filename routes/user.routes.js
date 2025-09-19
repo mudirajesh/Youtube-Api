@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken"
 
 import User from "../models/user.model.js"
 import cloudinary from "../config/cloudinary.js"
+import { checkAuth } from "../middleware/auth.middleware.js"
 
 const router = express.Router()
 
@@ -88,6 +89,40 @@ router.post("/login", async (req, res) => {
     })
   } catch (error) {
     console.error(error)
+    res.status(500).json({
+      error: "Something went wrong",
+      message: error.message,
+    })
+  }
+})
+
+// update profile
+router.put("/update-profile", checkAuth, async (req, res) => {
+  try {
+    const { channelName, phone } = req.body
+
+    let updatedData = { channelName, phone }
+
+    if (req.files && req.files.logoUrl) {
+      const uploadedImage = await cloudinary.uploader.upload(
+        req.files.logoUrl.tempFilePath
+      )
+
+      updatedData.logoUrl = uploadedImage.secure_url
+
+      updatedData.logoId = uploadedImage.public_id
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(req.user_id, updatedData, {
+      new: true,
+    })
+
+    res.status(200).json({
+      message: "Profile Updatated Successfully",
+      updatedUser,
+    })
+  } catch (error) {
+    console.log(error)
     res.status(500).json({
       error: "Something went wrong",
       message: error.message,

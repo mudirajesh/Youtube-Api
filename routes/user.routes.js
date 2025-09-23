@@ -130,4 +130,36 @@ router.put("/update-profile", checkAuth, async (req, res) => {
   }
 })
 
+// subscribe
+router.post("/subscribe", checkAuth, async (req, res) => {
+  try {
+    const { channelId } = req.body // *userId = currentUser , channelId = user to subscribe (channel)
+
+    if (req.user._id === channelId) {
+      return res.status(400).json({
+        error: "You cannot subscribe to yourself",
+      })
+    }
+
+    const currentUser = await User.findByIdAndUpdate(req.user._id, {
+      $addToSet: { subscribedChannels: channelId },
+    })
+
+    const subscribedUser = await User.findByIdAndUpdate(channelId, {
+      $inc: { subscribers: 1 },
+    })
+
+    res.status(200).json({
+      message: "Subscribed Successfully",
+      data: { currentUser, subscribedUser },
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      error: "Something went wrong ",
+      message: error.message,
+    })
+  }
+})
+
 export default router

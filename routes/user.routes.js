@@ -150,7 +150,7 @@ router.post("/subscribe", checkAuth, async (req, res) => {
     })
 
     res.status(200).json({
-      message: "Subscribed Successfully",
+      message: "Subscribed Successfully✅",
       data: { currentUser, subscribedUser },
     })
   } catch (error) {

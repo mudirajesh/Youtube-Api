@@ -107,4 +107,25 @@ router.put("/:commentId", checkAuth, async (req, res) => {
   }
 })
 
+//iss video ke liye kitna comment aya hai
+router.get("/comment/:videoId", checkAuth, async (req, res) => {
+  try {
+    const { videoId } = req.params
+
+    const comments = await Comment.findById({
+      video_id: videoId,
+    })
+      .populate("user_id", channelName, logoUrl)
+      .sort({ created: -1 })
+
+    res.status(200).json(comments)
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      error: "Something went wrong",
+      message: error.message,
+    })
+  }
+})
+
 export default router

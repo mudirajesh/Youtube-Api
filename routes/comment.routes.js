@@ -70,4 +70,41 @@ router.delete("/:commentId", checkAuth, async (req, res) => {
   }
 })
 
+//update comment
+router.put("/:commentId", checkAuth, async (req, res) => {
+  try {
+    const { commentId } = req.params
+    const { commentText } = req.body
+
+    const comment = await Comment.findById(commentId)
+
+    if (!comment) {
+      return res.status(401).json({
+        error: "Comment not found",
+      })
+    }
+
+    if (comment.user_id.toString() !== req.user._id) {
+      return res.status(403).json({
+        error: "Unauthrized to deleted this comment",
+      })
+    }
+
+    comment.commentText = commentText
+
+    await commentText.save()
+
+    res.status(200).json({
+      message: "Comment updated Successfully",
+      comment,
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      error: "Something went wrong",
+      message: error.message,
+    })
+  }
+})
+
 export default router
